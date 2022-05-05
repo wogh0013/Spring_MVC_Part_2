@@ -85,6 +85,151 @@
  - 앞의 개념을 <head>에만 적용하는 게 아니라, <html> 전체에 적용함
  - 페이지가 많아질 때 사용하면 좋음
 
+입력 폼 처리
+ - th:object : 커맨드 객체 지정
+ - *{..} : 선택 변수 식, th:object에서 선택한 객체에 접근
+ - th:field : HTML 태그의 id, name, value 속성을 자동 처리
+
+체크 박스
+ - 체크박스를 해제했을 때 문제점이 발생함
+   -> 히든 필드를 추가해줌 (_open)
+   -> 체크박스 체크 : open=true
+      체크박스 해제 : _open=on -> open=false
+ - 멀티 체크박스
+  - 체크박스에 담을 데이터들을 Map에 담아준다.
+  - @ModelAttribute 기능
+     : 이 컨트롤러에 있는 메서드들이 호출될 때마다 자동으로 호출되면서 model에 값이 담김.
+          
+메시지 
+ - 다양한 메시지를 한 곳에서 관리하도록 하는 기능
+ - 관리용 파일을 만들고, 각 HTML들이 해당 데이터를 key값으로 불러서 사용
+
+국제화
+ - 메시지 파일(messages.properties)을 각 나라별로 관리 -> 서비스를 국제화
+ - 영어 사용 -> messages_en.properties 사용
+ - 수학 사용 -> messages_ko.properties 사용 
+ - 어디서 접근한 것인지 인식하는 방법 -> HTTP accept-language 헤더 값 사용
+   또는, 사용자가 직접 언어를 선택하도록 하고 쿠키 등을 사용
+ - 타임리프 -> 스프링이 제공하는 메시지와 국제화 기능을 편리하게 통합해서 제공   
+
+
+ㅡㅡㅡㅡㅡㅡㅡㅡ
+검증
+ - 검증 오류가 발생하면 다시 해당 폼으로 돌아가서 재입력을 해야 함
+ - 폼 입력 시 오류가 발생하면, 고객이 입력한 데이터를 유지하면서 어떤 오류가 발생했는지 알려줘야 함
+ - Controller의 중요한 역할 : HTTP 요청이 정상인지 검증하는 것
+ - 클라이언트 검증 + 서버 검증을 적절히 섞어서 사용
+
+BindingResult : 검증 오류를 보관하는 객체(스프링이 제공)
+
+특정 필드에 오류가 있을 때 
+ -> FieldError 객체 생성 -> bindingResult에 담아둠
+필드를 넘어선 오류가 있을 때
+ -> ObjectError 객체 생성 -> bindingResult에 담아둠 
+
+파라미터 적을 때 @ModelAttribute 뒤에 BindingResult를 적어야 한다.
+ -> BindingResult에서 @ModelAttribute 객체의 결과를 Binding해주기 때문이다.
+    (BindingResult는 Model에 자동으로 포함된다.)
+
+#fields : BindingResult가 제공하는 검증 오류에 접근할 수 있다.
+th:errors : (th:if 편의 버전), 해당 필드에 오류가 있으면 태그 출력, 없으면 출력x
+th:errorclass : th:field에서 지정한 필드에 오류가 있으면 class 정보 추가
+
+FieldError 의 두 가지 생성자
+ - public FieldError(String objectName, String field, String defaultMessage);
+ - public FieldError(String objectName, String field, @Nullable Object rejectedValue, boolean bindingFailure,
+                     @Nullable String[] codes, @Nullable Object[] arguments, @Nullable String defaultMessage);
+ - objectName : 오류가 발생한 객체 이름
+ - field : 오류 필드
+ - rejectedValue : 사용자가 입력한 값(거절된 값), 오류 발생 시 사용자 입력 값을 저장하는 필드
+ - bindingFailure : 타입 오류 같은 바인딩이 실패했는지 여부
+ - codes : 메시지 코드(배열로 여러 값을 전달 가능, 순서대로 매칭되는 메시지 사용)
+ - arguments : 메시지에서 사용하는 인자('Object[]{100, 1000}'을 사용 -> {0}, {1}로 치환할 값 전달)
+ - defaultMessage : 기본 오류 메시지
+
+th:field="*{price}" : 정상 상황 -> 모델 객체 값 사용
+                      오류 상황 -> FieldError에서 보관한 값 사용
+
+void rejectValue(String field, String errorCode, Object[] errorArgs, String defaultMessage);
+ - field : 오류 필드명
+ - errorCode : 오류 코드(messageResolver를 위한 오류 코드)
+ - errorArgs : 오류 메시지에서 {0}을 치환하기 위한 값
+ - defaultMessage : 오류 메시지를 찾을 수 없을 때 사용하는 기본 메시지
+
+MessageCodesResolver
+ - 검증 오류 코드로 메시지 코드들 생성
+ - 인터페이스고, 주로 ObjectError, FieldError(생성자)와 함께 사용
+ - 구체적인 것을 먼저 만들어주고, 덜 구체적인 것을 나중에 만든다.
+ - 객체 오류 - 다음 순서로 2가지 생성
+    1. code + "." + object name
+    2. code
+    ex) 1. required.item
+        2. required
+
+ - 필드 오류 - 다음 순서로 4가지 생성
+    1. code + "." + object name + "." + field
+    2. code + "." + field
+    3. code + "." + field type
+    4. code
+    ex) 1. "typeA.user.age"
+        2. "typeA.age"
+        3. "typeA.int"
+        4. "typeA"
+
+Controller에서 하는 일이 너무 많다 !!
+ - 검증 로직
+ - 정상(성공) 로직
+  -> 둘을 분리해주자
+  -> 검증 로직 클래스 따로, 정상 로직 클래스 따로
+  -> 유지보수 간편 
+
+@Validated
+ - 검증기를 실행하라는 애노테이션
+ - WebDataBinder에 등록한 검증기를 찾아서 실행
+ - 어떤 검증기가 실행될지는 'supports()'로 구분해줌
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
