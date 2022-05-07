@@ -214,7 +214,7 @@ Bean Validation 오브젝트 오류
 등록과 수정에 다른 BeanValidation을 적용하고 싶은데 둘이 동시에 적용된다.
  -> 어떻게 해결할까 ?
   1. groups 기능 사용
-  *2. Item을 직접 사용하지 않고, ItemSaveForm, ItemUpdateForm 등 폼 전송을 위한 별도의 모델 객체 사용
+  *2. Item을 직접 사용하지 않고, ItemSaveForm, ItemUpdateForm 등 폼 전송을 위한 별도의 모델 객체 사용.
 
 
 
