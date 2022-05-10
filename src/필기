@@ -214,9 +214,37 @@ Bean Validation 오브젝트 오류
 등록과 수정에 다른 BeanValidation을 적용하고 싶은데 둘이 동시에 적용된다.
  -> 어떻게 해결할까 ?
   1. groups 기능 사용
-  **2. Item을 직접 사용하지 않고, ItemSaveForm, ItemUpdateForm 등 폼 전송을 위한 별도의 모델 객체 사용
+  *2. Item을 직접 사용하지 않고, ItemSaveForm, ItemUpdateForm 등 폼 전송을 위한 별도의 모델 객체 사용
 
+HTTP 메시지 컨버터
+ API에서 3가지 경우
+  1) 성공 요청 : 성공
+  2) 실패 요청 : JSON을 객체로 생성하는 것 자체가 실패
+    - JSON 객체를 만들 때 오류값을 전송
+      -> API 컨트롤러를 호출하지도 못함
+      -> JSON 객체가 만들어져야 호출을 하는데, 그 단계까지도 못 가게 되는 것 
+      -> 컨트롤러 호출 X 
+  3) 검증 오류 요청 : JSON을 객체로 생성하는 것은 성공, 검증에서 실패
+     - API 컨트롤러 호출은 성공 (HttpMessageConverter 성공)
+     - 예외 발생 (Validation 오류)
 
+ @ModelAttribute
+  - HTTP 요청 파라미터를 처리, 필드 단위로 정교하게 바인딩이 적용됨
+  - 특정 필드가 바인딩되지 않아도, 나머지 필드는 정상 바인딩됨
+  - Validator를 사용한 검증도 적용 가능
+ @RequestBody
+  - HttpMessageConverter, JSON 데이터를 객체로 변경하지 못하면 이후 단계 자체를 진행하지 못하고 예외 발생 -> 예외 처리
+  - 컨트롤러 호출되지 않고, Validator도 적용 X  
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+로그인 처리(쿠키, 세션)
+
+domain / web
+ - domain : 시스템이 구현해야 하는 핵심 비즈니스 업무 영역
+ - 향후 web은 다른 기술로 바꿀 수 있더라도, domain은 유지해야 한다.
+ - web -> domain은 알고 있게 해도, domain -> web은 모르도록 설계해야 한다.
+ - web 패키지를 삭제해도 domain에는 영향이 안 끼쳐야 한다.
+ - domain은 web을 참조하면 안된다.
 
 
 
