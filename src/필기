@@ -268,7 +268,7 @@ domain / web
   -> 추정 불가능한 세션 ID 생성(UUID)
   -> 생성된 세션 ID, 보관할 값을 서버의 세션 저장소에 보관
   -> 세션 ID를 응답 쿠키로 전달
-     - 클라이언트와 서버는 결국 쿠키로 연결돼어야 함
+     - 클라이언트와 서버는 결국 쿠키로 연결되어야 함
      - 서버는 클라이언트에 세션 ID만 쿠키에 담아서 전달
      - 클라이언트는 쿠키 저장소에 쿠키 보관
      - 중요한 정보는 클라이언트에 전달 X, 추정 불가능한 세션 ID만 쿠키로 전달
@@ -276,10 +276,25 @@ domain / web
   -> 서버에서는 클라이언트가 전달한 쿠키 정보로 세션 저장소 조회
   -> 로그인 시 보관한 세션 정보 사용 
 
+ - request.getSession(true)
+    : 세션이 있으면 반환, 없으면 신규 세션 생성
+ - request.getSession(false)
+    : 세션이 있으면 반환, 없으면 null 반환   
 
+ - 스프링이 지원하는 세션 애노테이션
+  - @SessionAttribute
+  - 이미 로그인된 사용자를 찾을 때 (이 기능은 세션을 생성하지 않음)
+   @SessionAttribute(name = "loginMember", required = false) Member loginMember
+ - HttpSession이 제공하는 타임아웃 기능을 사용 
+   -> 세션 타임아웃으로 설정한 시간 동안 세션을 추가로 사용 가능
 
-
-
+**
+@Controller
+ - View를 반환하기 위해 사용(by 뷰리졸버)
+@RestController
+ - @ResponseBody + @Controller
+ - Data를 반환하기 위해 사용
+ - Json 형태로 객체 데이터를 반환
 
 
 
