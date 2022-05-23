@@ -380,6 +380,17 @@ BasicErrorController 우선순위
 
 
 API 예외 처리
+ - API 오류 처리 : @ExceptionHandler를 사용하자 !!
+ - 컨트롤러 밖으로 던져진 예외를 해결하고, 동작방식(상태코드 등)을 변경하고 싶으면 ExceptionResolver를 사용함 (예외를 해결 후 정상 흐름처럼 바꾸는 것이 목적)
+
+ExceptionResolver
+ - 예외 상태 코드 변환
+   - 예외를 'response.sendError(xxx)' 호출로 변경해서 서블릿에서 상태 코드에 따른 오류를 처리하도록 위임
+   - 이후 WAS는 서블릿 오류 페이지를 찾아서 내부 호출(스프링 부트가 기본 설정한 /error 호출)
+ - 뷰 템플릿 처리
+   - ModelAndView 에 값을 채워서 예외에 따른 새로운 오류 화면 뷰를 렌더링해서 고객에게 제공
+ - API 응답 처리  
+
 
 
 
