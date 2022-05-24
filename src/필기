@@ -467,6 +467,85 @@ ExceptionResolver
   컨트롤러 : 정상 코드
 
 
+스프링 타입 컨버터
+ - 애플리케이션 개발 -> 타입을 변환하는 상황 다수 발생
+ - 스프링 타입 변환 적용 예시
+   - 스프링 MVC 요청 파라미터
+     1) @RequestParam
+     2) @ModelAttribute
+     3) @PathVariable
+   - YML 정보 읽기, XML에 넣은 스프링 빈 정보 변환, 뷰 렌더링할 때
+ - 개발자가 스프링에 추가적인 타입 변환이 필요하면, 스프링이 제공하는 확장 가능한 컨버터 인터페이스를 이용해서 등록하면 된다.
+   -> public Interface Converter<S, T> { ~}
+
+ConversionService
+ - 스프링이 각각의 컨버터를 모아두고 묶어서 편하게 관리, 사용하는 기능
+ - DefaultConversionService
+   - ConversionService 인터페이스의 구현체이다.
+   - 추가적인 기능으로 ConversionService에 Converter들은 등록할 수 있고,
+    사용자는 이러한 내부 사정을 몰라도 되고, 단순히 ConversionService 인터페이스에만 의존해도 된다.
+    즉, 등록만 해놓으면 스프링이 자동으로 변환이 필요한 컨버터를 맞춰주고 타입을 변환해준다.
+ - ConversionService 사용
+   - Integer value = conversionService.convert("10", Integer.class);
+   
+* 인터페이스 분리 법칙(ISP, Interface Segregation Principal)
+ - 클라이언트는 자신이 이용하지 않는 메서드에 의존하지 않아야 한다.
+ - ConversionService를 예로 들면,
+   ConversionService 인터페이스 내부에는 Converter를 등록, 관리하는 구현체가 존재한다. 하지만 사용자는 이러한 메서드는 전혀 몰라도 되고, Converter를 사용하는 것만 알면 된다. 즉, ConverterService 인터페이스만 의존하면 된다.
+   -> 이렇게 인터페이스를 분리하는 것을 ISP라고 한다.
+
+스프링에 Converter 적용
+ - 스프링은 내부에서 ConversionService 제공
+ - WebMvcConfigurer가 제공하는 addFormatters() 사용
+   -> 추가하고 싶은 컨버터 등록
+   -> 스프링은 내부에서 사용하는 ConversionService에 컨버터를 추가해줌
+ - 스프링은 내부에 수많은 컨버터를 제공해준다
+   -> 개발자가 컨버터를 추가하면 추가한 컨버터가 우선순위로 동작한다
+
+* @RequestParam : 1:1로 매핑
+* @ModelAttribute : 객체를 매핑
+   - 파라미터로 넘겨준 타입의 오브젝트를 자동으로 생성
+   - HTTP Body 내용, HTTP 파라미터 값들을 Getter, Setter, 생성자를 통해 주입해줌, @ModelAttribute("파라미터명")
+   - 생성된 오브젝트 HTTP로 넘어온 값들을 자동으로 바인딩
+   - 애노테이션이 붙은 객체가 자동으로 Model 객체에 추가되어 View단으로 전달
+   * Model 객체 : Controller에서 생성된 데이터를 담아 View로 전달하는 객체
+
+뷰 템플릿에 컨버터 적용
+ - 이전까지는 문자 -> 객체로 타입 변환
+ - View는 문자를 출력해야 됨(객체 -> 문자로 타입 변환해야 함)
+* 타임리프
+ - 변수 표현식 : ${...}
+ - 컨버전 서비스 적용 : ${{...}}
+ - 타임리프의 th:field는 id , name을 출력하는 등 다양한 기능이 있는데, 여기에 컨버전 서비스도 함께 적용된다.
+ 
+Formatter(포맷터)
+ - 웹 애플리케이션에서 객체->문자 / 문자->객체로 변환
+ - 화면에 숫자를 출력해야 하는데, 
+ Integer -> String 출력 시점에 숫자 1000 -> 문자 "1,000" 이렇게 1000 단위에 쉼표를 넣어서 출력, 또는 문자 "1,000" -> 숫자 1000으로 변경
+ - Locale: 여기에 추가로 날짜 숫자의 표현 방법은 Locale 현지화 정보 사용O 
+ - 객체 -> 문자 (특정한 포맷에 맞추어) or 문자 -> 객체 출력
+ - 즉, 컨버터의 특별한 버전이 포맷터이다
+
+Converter : 객체 <-> 객체 (범용)
+Formatter : 객체 <-> 문자 (문자에 특화) + 현지화(Locale)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
